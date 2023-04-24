@@ -1,1 +1,14 @@
-https://bmovies.cloud/movie/filter/series/
+Link: https://bmovies.cloud/movie/filter/series/
+Key path: film/
+Page: 554
+Info: 
+
+Link: https://dopebox.to/tv-show?page=
+Key path: tv/watch
+Page: 377
+Info: 
+
+Link: https://www3.moviecrumbs.net/tv-shows?page=
+Key path: /tv/watch-v
+Page: 302
+Info: 
