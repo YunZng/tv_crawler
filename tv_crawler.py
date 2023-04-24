@@ -1,3 +1,4 @@
+from io import TextIOWrapper
 import re
 from bs4 import BeautifulSoup
 from urllib import parse, request
@@ -7,15 +8,17 @@ import requests
 def get_links(url:str)->list[str]:
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
-    return [parse.urljoin(url, link.get('href')) for link in soup.find_all('a', href=re.compile('.*tv-show/.*'))]
+    return [parse.urljoin(url, link.get('href')) for link in soup.find_all('a', href=re.compile('.*film/.*'))]
 
-# Scroll down to the bottom of the page to load lazy content
-def scroll_to_bot():
-    return
-
-def crawl_n_scrape(url:str, max_content=5000):
-    for x in range (max_content):
-        get_links
+def crawl_n_scrape(url:str, out_file:TextIOWrapper, max_content=100):
+    visited = []
+    links = get_links(url)
+    for link in links:
+        print(link, file=out_file)
+        # max_content = max_content - 1
+        # print(link)
+        # print(link)
+        
     
 
 def writelines(filename, data):
@@ -34,8 +37,8 @@ def get_roots(file_name: str) -> list[str]:
 if __name__ == '__main__':
     roots = get_roots("roots.txt")
 
-    with open("links.txt", 'w') as fout:
-        for root in roots:
-            for data in get_links(root):
-                print(data, file=fout)
+    with open('links.txt', 'w') as fout:
+        for link in roots:
+            for i in range(10):
+                crawl_n_scrape(link+str(i+1), fout)
 
