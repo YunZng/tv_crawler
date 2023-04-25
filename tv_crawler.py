@@ -102,7 +102,7 @@ def crawl_n_scrape(site:Site, get_content:int):
     res={}
     data = []
     visited = []
-    for i in range(site.page):
+    for i in range(1): ## modify to range(1) to only crawl the first page or range(site.page) for all
         links = get_links(site.link+str(i+1), site.key_path)
         for link in links:
             if link in visited:
