@@ -49,7 +49,7 @@ def read_dopebox(url:str):
     data = {}
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
-    
+
     return data
 
 def crawl_n_scrape(site:Site, get_content:int):
@@ -96,8 +96,11 @@ if __name__ == '__main__':
 
     data_json = open('data.json', 'w')
     data = []
+    get_functions=[read_bmovies, read_dopebox, read_dopebox]
+    iterator = 0
     for site in sites:
-        data.append(crawl_n_scrape(site))
+        data.append(crawl_n_scrape(site, get_functions[0]))
+        iterator+=1
     print(json.dump(data, data_json))
     data_json.close()
 
