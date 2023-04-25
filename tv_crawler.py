@@ -4,6 +4,11 @@ from bs4 import BeautifulSoup
 from urllib import parse
 import requests
 import json
+import logging
+
+logging.basicConfig(level=logging.DEBUG, filename='output.log', filemode='w')
+logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
+visitlog = logging.getLogger('visited')
 
 class Site:
     def __init__(self:str, link:str, key_path:str, page:str, info:str):
@@ -21,7 +26,8 @@ def get_links(url:str, key_path:str)->list[str]:
     soup = BeautifulSoup(res.text, 'html.parser')
     return [parse.urljoin(url, link.get('href')) for link in soup.find_all('a', href=re.compile('.*'+key_path+'.*'))]
 
-def get_content(url:str):
+# get specific site's content
+def read_bmovies(url:str):
     data = {}
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
@@ -38,15 +44,24 @@ def get_content(url:str):
     return data
     # return [parse.urljoin(url, link.get('href')) )]
 
-def crawl_n_scrape(site:Site, out_file:TextIOWrapper):
+# get specific site's content
+def read_dopebox(url:str):
+    data = {}
+    res = requests.get(url)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    
+    return data
+
+def crawl_n_scrape(site:Site, get_content:int):
+    res={}
+    data = []
     for i in range(1):
         links = get_links(site.link+str(i+1), site.key_path)
-        for link in links:
-            # content = get_content(link)
-            print(link, file=out_file)
-            print("processing: ",link)
-        
-    
+        for link in links:       
+            visitlog.debug(link)
+            data.append(get_content(link))
+    res[site.link] = data
+    return res
 
 def writelines(filename, data):
     with open(filename, 'w') as fout:
@@ -71,7 +86,7 @@ def get_sites(filename)->list[Site]:
         elif line.startswith('Info: '):
             site.info = line.split('Info: ')[1]
             sites.append(site)
-            print(site)
+            # print(site)
 
     return sites
 
@@ -79,7 +94,10 @@ def get_sites(filename)->list[Site]:
 if __name__ == '__main__':
     sites = get_sites("roots.txt")
 
-    with open('links.txt', 'w') as fout:
-        for site in sites:
-            crawl_n_scrape(site, fout)
+    data_json = open('data.json', 'w')
+    data = []
+    for site in sites:
+        data.append(crawl_n_scrape(site))
+    print(json.dump(data, data_json))
+    data_json.close()
 
