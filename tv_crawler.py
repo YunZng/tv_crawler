@@ -11,10 +11,10 @@ logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
 visitlog = logging.getLogger('visited')
 
 class Site:
-    def __init__(self:str, link:str, key_path:str, page:str, info:str):
+    def __init__(self:str, link:str, key_path:str, page:int, info:str):
         self.link = link
         self.key_path = key_path
-        self.page = int(page)
+        self.page = page
         self.info = info
 
     def __str__(self):
@@ -37,15 +37,18 @@ quality = 'Quality'
 release = 'Release'
 rating = 'Rating'
 link = 'Link'
+image = 'Image'
 
 # get specific site's content
 def read_bmovies(url:str):
     data = {}
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
-    div = soup.find('div', {'class':'mvic-desc'})
+    parent_div = soup.find('div', {'class':'mvi-content'})
+    image_div = parent_div.find('div', {'class':'thumb mvic-thumb'})
+    div = parent_div.find('div', {'class':'mvic-desc'})
     details = [item.get_text(strip=True).split(':') for item in div.find('div', {'class':'mvic-info'}).find_all('p')]
-    # title
+    # gather data and put them in a map, later convert to json
     data[title] = div.find('h3').get_text(strip=True)
     data[description] = div.find('div', {'class':'desc'}).get_text(strip=True)
     data[genre] = details[0][1]
@@ -57,6 +60,7 @@ def read_bmovies(url:str):
     data[release] = details[7][1]
     data[rating] = details[8][1]
     data[link] = url
+    data[image] = 'https:' + image_div['style'].split('(', 1)[1].split(')')[0]
     return data
 
 # get specific site's content
@@ -64,7 +68,8 @@ def read_dopebox(url:str):
     data = {}
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
-    div = soup.find('div', {'class':'dp-i-c-right'})
+    parent_div = soup.find('div', {'class':'dp-i-content'})
+    div = parent_div.find('div', {'class':'dp-i-c-right'})
     details = [item.get_text(strip=True).split(':') for item in div.find_all('div', {'class':'row-line'})]
     data[title] = div.find('h2', {'class':'heading-name'}).get_text(strip=True)
     data[description] = div.find('div', {'class':'description'}).get_text(strip=True).split('Overview:')[1]
@@ -77,13 +82,15 @@ def read_dopebox(url:str):
     data[release] = details[0][1]
     data[rating] = div.find('span', {'class':'imdb'}).get_text(strip=True).split('IMDB: ')[1]
     data[link] = url
+    data[image] = parent_div.find('img', {'class':'film-poster-img'})['src']
     return data
 
 def read_moviecrumbs(url:str):
     data = {}
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
-    div = soup.find('div', {'class':'dp-i-c-right'})
+    parent_div = soup.find('div', {'class':'dp-i-content'})
+    div = parent_div.find('div', {'class':'dp-i-c-right'})
     details = [item.get_text(strip=True).split(':') for item in div.find_all('div', {'class':'row-line'})]
     data[title] = div.find('h2', {'class':'heading-name'}).get_text(strip=True)
     data[description] = div.find('div', {'class':'description'}).get_text(strip=True)
@@ -96,13 +103,14 @@ def read_moviecrumbs(url:str):
     data[release] = details[0][1]
     data[rating] = div.find('span', {'class':'item mr-2'}).get_text(strip=True).split('IMDB: ')[1]
     data[link] = url
+    data[image] = parent_div.find('img', {'class':'film-poster-img'})['src']
     return data
 
 def crawl_n_scrape(site:Site, get_content:int):
     res={}
     data = []
     visited = []
-    for i in range(site.page):
+    for i in range(1):
         links = get_links(site.link+str(i+1), site.key_path)
         for link in links:
             if link in visited:
@@ -132,11 +140,10 @@ def get_sites(filename)->list[Site]:
         elif line.startswith('Key path: '):
             site.key_path = line.split('Key path: ')[1]
         elif line.startswith('Page: '):
-            site.page = line.split('Page: ')[1]
+            site.page = int(line.split('Page: ')[1])
         elif line.startswith('Info: '):
             site.info = line.split('Info: ')[1]
             sites.append(site)
-            # print(site)
 
     return sites
 
@@ -153,4 +160,3 @@ if __name__ == '__main__':
         iterator+=1
     print(json.dump(data, data_json))
     data_json.close()
-
