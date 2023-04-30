@@ -1,7 +1,43 @@
 .I 1
 .C 
  United States
+.O 
+ stars
 
 .I 2
 .T 
  Sister
+
+.I 3
+.O 
+ Chef
+
+.I 4
+.O 
+ doctor
+
+.I 5
+.T 
+ Doctor
+
+.I 6
+.O 
+ run
+
+.I 7
+.T 
+ Great
+
+.I 8
+.T 
+ Catching Lightning
+.C
+ United
+
+.I 9
+.O 
+ rich
+
+.I 10
+.T 
+ rich

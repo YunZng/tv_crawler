@@ -205,33 +205,51 @@ def norm_precision(results, relevant):
 def experiment():
     docs = read_docs('processRaw.raw')
     queries = read_docs('query.raw')
+    rels = read_rels('query.rels')
     stopwords = read_stopwords('common_words')
-    output = open("output.txt", "w")
+    # output = open("output.txt", "w")
 
-    # output.write('Links', sep='\t')
-    output.write('Links\n')
+    # output.write('Links\n')
 
+    print('Links', 'p_0.25', 'p_0.5', 'p_0.75', 'p_1.0', 'p_mean1', 'p_mean2', 'r_norm', 'p_norm', sep='\t')
 
     # This loop goes through all permutations. You might want to test with specific permutations first
     processed_docs, processed_queries = process_docs_and_queries(docs, queries, True, True, stopwords)
     doc_freqs = compute_doc_freqs(processed_docs)
     doc_vectors = [compute_tfidf(doc, doc_freqs, TermWeights(title=4, country=1, other=1, link=0)) for doc in processed_docs]
 
+    metrics = []
+
     for query in processed_queries:
         query_vec = compute_tfidf(query, doc_freqs, TermWeights(title=1, country=1, other=1, link=0))
         results = search(doc_vectors, query_vec)
+        rel = rels[query.doc_id]
+
+        metrics.append([
+            precision_at(0.25, results, rel),
+            precision_at(0.5, results, rel),
+            precision_at(0.75, results, rel),
+            precision_at(1.0, results, rel),
+            mean_precision1(results, rel),
+            mean_precision2(results, rel),
+            norm_recall(results, rel),
+            norm_precision(results, rel)
+        ])
+
+        averages = [f'{np.mean([metric[i] for metric in metrics]):.4f}'
+            for i in range(len(metrics[0]))]
     
         for i in range(10):
             for doc in docs:
                 if doc.doc_id == results[i]:
                     docLink = ''.join(doc.link)
-                    strLink = docLink + '\n'
-                    # output.write(''.join(doc.link), sep='\t')
-                    output.write(strLink)
+                    print(''.join(doc.link), *averages, sep='\t')
+    #                 strLink = docLink + '\n'
+    #                 output.write(strLink)
         
-        output.write('----------------\n')
+    #     output.write('----------------\n')
     
-    output.close()
+    # output.close()
 
 
 def process_docs_and_queries(docs, queries, stem, removestop, stopwords):
