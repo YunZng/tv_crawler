@@ -23,10 +23,10 @@ class Document(NamedTuple):
 
     def __repr__(self):
         return (f"doc_id: {self.doc_id}\n" +
-            f"  author: {self.title}\n" +
-            f"  title: {self.country}\n" +
-            f"  keyword: {self.other}\n" +
-            f"  abstract: {self.link}")
+            f"  title: {self.title}\n" +
+            f"  country: {self.country}\n" +
+            f"  other: {self.other}\n" +
+            f"  link: {self.link}")
 
 
 def read_stopwords(file):
@@ -74,7 +74,6 @@ def read_docs(file):
     return [Document(i + 1, d['T'], d['C'], d['O'], d['L'])
         for i, d in enumerate(docs[1:])]
 
-
 def stem_doc(doc: Document):
     return Document(doc.doc_id, *[[stemmer.stem(word) for word in sec]
         for sec in doc.sections()])
@@ -88,7 +87,6 @@ def remove_stopwords_doc(doc: Document):
 
 def remove_stopwords(docs: List[Document]):
     return [remove_stopwords_doc(doc) for doc in docs]
-
 
 
 ### Term-Document Matrix
@@ -135,6 +133,7 @@ def compute_tfidf(doc, doc_freqs, weights): # add one additional parameter N
             vec[word] = tf[word] * (1 / doc_freqs[word])
     return dict(vec)  # convert back to a regular dict  # TODO: implement
 
+
 ### Vector Similarity
 
 def dictdot(x: Dict[str, float], y: Dict[str, float]):
@@ -162,28 +161,9 @@ def interpolate(x1, y1, x2, y2, x):
     return m * x + b
 
 def precision_at(recall: float, results: List[int], relevant: List[int]) -> float:
-    '''
-    This function should compute the precision at the specified recall level.
-    If the recall level is in between two points, you should do a linear interpolation
-    between the two closest points. For example, if you have 4 results
-    (recall 0.25, 0.5, 0.75, and 1.0), and you need to compute recall @ 0.6, then do something like
-
-    interpolate(0.5, prec @ 0.5, 0.75, prec @ 0.75, 0.6)
-
-    Note that there is implicitly a point (recall=0, precision=1).
-
-    `results` is a sorted list of document ids
-    `relevant` is a list of relevant documents
-    '''
     p = [x / len(relevant) for x in range(1, len(relevant) + 1)]
     d = {k : v for v, k in enumerate(results)}
     relevant.sort(key = d.get)
-
-    # precision = p # initialization
-    # for idx in p:
-    #     i = p.index(idx) + 1
-    #     Rank_i = results.index(relevant[idx - 1]) + 1
-    #     precision[i - 1] = idx / Rank_i
 
     if recall == 0: 
         return 1
@@ -235,44 +215,30 @@ def norm_precision(results, relevant):
     return 1 - ((rank_sum - i_sum) / denom)  # TODO: implement
 
 
-### Extensions
-
 ### Search
 
 def experiment():
     docs = read_docs('processRaw.raw')
     queries = read_docs('query.raw')
-    rels = read_rels('query.rels')
     stopwords = read_stopwords('common_words')
 
-    print('term', 'stem', 'removestop', 'sim', 'termweights', 'p_0.25', 'p_0.5', 'p_0.75', 'p_1.0', 'p_mean1', 'p_mean2', 'r_norm', 'p_norm', sep='\t')
+    print('Links', sep='\t')
 
     # This loop goes through all permutations. You might want to test with specific permutations first
     processed_docs, processed_queries = process_docs_and_queries(docs, queries, True, True, stopwords)
     doc_freqs = compute_doc_freqs(processed_docs)
     doc_vectors = [compute_tfidf(doc, doc_freqs, TermWeights(title=1, country=1, other=1, link=0)) for doc in processed_docs]
 
-    metrics = []
-
     for query in processed_queries:
         query_vec = compute_tfidf(query, doc_freqs, TermWeights(title=1, country=1, other=1, link=0))
-        results = search(doc_vectors, query_vec, cosine_sim())
-        rel = rels[query.doc_id]
-
-        metrics.append([
-            precision_at(0.25, results, rel),
-            precision_at(0.5, results, rel),
-            precision_at(0.75, results, rel),
-            precision_at(1.0, results, rel),
-            mean_precision1(results, rel),
-            mean_precision2(results, rel),
-            norm_recall(results, rel),
-            norm_precision(results, rel)
-        ])
-
-    averages = [f'{np.mean([metric[i] for metric in metrics]):.4f}'
-        for i in range(len(metrics[0]))]
-    print(compute_tfidf, True, True, cosine_sim, ','.join(map(str, TermWeights(title=1, country=1, other=1, link=0))), *averages, sep='\t')
+        results = search(doc_vectors, query_vec)
+    
+        for i in range(10):
+            for doc in docs:
+                if doc.doc_id == results[i]:
+                    print(''.join(doc.link), sep='\t')
+        
+        print('----------------', sep='\t')
 
     # return  # TODO: just for testing; remove this when printing the full table
 
@@ -289,8 +255,8 @@ def process_docs_and_queries(docs, queries, stem, removestop, stopwords):
     return processed_docs, processed_queries
 
 
-def search(doc_vectors, query_vec, sim):
-    results_with_score = [(doc_id + 1, sim(query_vec, doc_vec))
+def search(doc_vectors, query_vec):
+    results_with_score = [(doc_id + 1, cosine_sim(query_vec, doc_vec))
                     for doc_id, doc_vec in enumerate(doc_vectors)]
     results_with_score = sorted(results_with_score, key=lambda x: -x[1])
     results = [x[0] for x in results_with_score]
