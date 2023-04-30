@@ -207,11 +207,11 @@ def experiment():
     queries = read_docs('query.raw')
     rels = read_rels('query.rels')
     stopwords = read_stopwords('common_words')
-    # output = open("output.txt", "w")
+    output = open("output.txt", "w")
 
-    # output.write('Links\n')
+    output.write('Links\n')
 
-    print('Links', 'p_0.25', 'p_0.5', 'p_0.75', 'p_1.0', 'p_mean1', 'p_mean2', 'r_norm', 'p_norm', sep='\t')
+    # print('Links', 'p_0.25', 'p_0.5', 'p_0.75', 'p_1.0', 'p_mean1', 'p_mean2', 'r_norm', 'p_norm', sep='\t')
 
     # This loop goes through all permutations. You might want to test with specific permutations first
     processed_docs, processed_queries = process_docs_and_queries(docs, queries, True, True, stopwords)
@@ -243,13 +243,13 @@ def experiment():
             for doc in docs:
                 if doc.doc_id == results[i]:
                     docLink = ''.join(doc.link)
-                    print(''.join(doc.link), *averages, sep='\t')
-    #                 strLink = docLink + '\n'
-    #                 output.write(strLink)
+                    # print(''.join(doc.link), *averages, sep='\t')
+                    strLink = docLink + '\n'
+                    output.write(strLink)
         
-    #     output.write('----------------\n')
+        output.write('----------------\n')
     
-    # output.close()
+    output.close()
 
 
 def process_docs_and_queries(docs, queries, stem, removestop, stopwords):
