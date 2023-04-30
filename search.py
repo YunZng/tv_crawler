@@ -215,7 +215,7 @@ def experiment():
     # This loop goes through all permutations. You might want to test with specific permutations first
     processed_docs, processed_queries = process_docs_and_queries(docs, queries, True, True, stopwords)
     doc_freqs = compute_doc_freqs(processed_docs)
-    doc_vectors = [compute_tfidf(doc, doc_freqs, TermWeights(title=1, country=1, other=1, link=0)) for doc in processed_docs]
+    doc_vectors = [compute_tfidf(doc, doc_freqs, TermWeights(title=4, country=1, other=1, link=0)) for doc in processed_docs]
 
     for query in processed_queries:
         query_vec = compute_tfidf(query, doc_freqs, TermWeights(title=1, country=1, other=1, link=0))
