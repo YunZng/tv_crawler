@@ -38,9 +38,6 @@ stopwords = read_stopwords('common_words')
 stemmer = SnowballStemmer('english')
 
 def read_rels(file):
-    '''
-    Reads the file of related documents and returns a dictionary of query id -> list of related documents
-    '''
     rels = {}
     with open(file) as f:
         for line in f:
@@ -53,9 +50,6 @@ def read_rels(file):
     return rels
 
 def read_docs(file):
-    '''
-    Reads the corpus into a list of Documents
-    '''
     docs = [defaultdict(list)]  # empty 0 index
     category = ''
     with open(file) as f:
@@ -98,9 +92,6 @@ class TermWeights(NamedTuple):
     link: float
 
 def compute_doc_freqs(docs: List[Document]):
-    '''
-    Computes document frequency, i.e. how many documents contain a specific word
-    '''
     freq = Counter()
     for doc in docs:
         words = set()
@@ -131,22 +122,16 @@ def compute_tfidf(doc, doc_freqs, weights): # add one additional parameter N
             vec[word] = 0
         else:
             vec[word] = tf[word] * (1 / doc_freqs[word])
-    return dict(vec)  # convert back to a regular dict  # TODO: implement
+    return dict(vec)  # convert back to a regular dict 
 
 
 ### Vector Similarity
 
 def dictdot(x: Dict[str, float], y: Dict[str, float]):
-    '''
-    Computes the dot product of vectors x and y, represented as sparse dictionaries.
-    '''
     keys = list(x.keys()) if len(x) < len(y) else list(y.keys())
     return sum(x.get(key, 0) * y.get(key, 0) for key in keys)
 
 def cosine_sim(x, y):
-    '''
-    Computes the cosine similarity between two sparse term vectors represented as dictionaries.
-    '''
     num = dictdot(x, y)
     if num == 0:
         return 0
@@ -180,7 +165,7 @@ def precision_at(recall: float, results: List[int], relevant: List[int]) -> floa
 
     idx = p.index(recall) + 1
     Rank_i = results.index(relevant[idx - 1]) + 1
-    return idx / Rank_i  # TODO: implement
+    return idx / Rank_i
 
 def mean_precision1(results, relevant):
     return (precision_at(0.25, results, relevant) +
@@ -188,7 +173,7 @@ def mean_precision1(results, relevant):
         precision_at(0.75, results, relevant)) / 3
 
 def mean_precision2(results, relevant):
-    return sum(precision_at(i/10, results, relevant) for i in range(1, 11)) / 10 # TODO: implement
+    return sum(precision_at(i/10, results, relevant) for i in range(1, 11)) / 10
 
 def norm_recall(results, relevant):
     rank_sum = 0
@@ -197,7 +182,7 @@ def norm_recall(results, relevant):
     
     i_sum = sum(range(1, len(relevant) + 1))
 
-    return 1 - ((rank_sum - i_sum) / (len(relevant) * (len(results) - len(relevant))))  # TODO: implement
+    return 1 - ((rank_sum - i_sum) / (len(relevant) * (len(results) - len(relevant))))
 
 def norm_precision(results, relevant):
     rank_sum = 0
@@ -212,7 +197,7 @@ def norm_precision(results, relevant):
     R = len(relevant)
     denom = N * np.log(N) - (N - R) * np.log(N - R) - R * np.log(R)
 
-    return 1 - ((rank_sum - i_sum) / denom)  # TODO: implement
+    return 1 - ((rank_sum - i_sum) / denom)
 
 
 ### Search
@@ -221,8 +206,11 @@ def experiment():
     docs = read_docs('processRaw.raw')
     queries = read_docs('query.raw')
     stopwords = read_stopwords('common_words')
+    output = open("output.txt", "w")
 
-    print('Links', sep='\t')
+    # output.write('Links', sep='\t')
+    output.write('Links\n')
+
 
     # This loop goes through all permutations. You might want to test with specific permutations first
     processed_docs, processed_queries = process_docs_and_queries(docs, queries, True, True, stopwords)
@@ -236,11 +224,14 @@ def experiment():
         for i in range(10):
             for doc in docs:
                 if doc.doc_id == results[i]:
-                    print(''.join(doc.link), sep='\t')
+                    docLink = ''.join(doc.link)
+                    strLink = docLink + '\n'
+                    # output.write(''.join(doc.link), sep='\t')
+                    output.write(strLink)
         
-        print('----------------', sep='\t')
-
-    # return  # TODO: just for testing; remove this when printing the full table
+        output.write('----------------\n')
+    
+    output.close()
 
 
 def process_docs_and_queries(docs, queries, stem, removestop, stopwords):
