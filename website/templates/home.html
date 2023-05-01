@@ -27,12 +27,26 @@
 <!-- results -->
 {% block result %}
 
-<table>
+<table class="table table-dark table-striped">
+    <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Thubmnail</th>
+          <th scope="col">Info</th>
+          <th scope="col"></th>
+        </tr>
+    </thead>
     {% for x in range(10) %}
     <tr>
-        {% for x in range(3) %}
-          <td>Hello</td>
-        {% endfor %}
+        <td>{{x}}</td>
+        <td>This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. </td>
+        <td>This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. 
+        </td>
+        <td>
+            <a href="https://getbootstrap.com/docs/5.0/utilities/colors/">
+                <button class="btn btn-primary">Go</button>
+            </a>
+        </td>
     </tr>
     {% endfor %}
 </table>
