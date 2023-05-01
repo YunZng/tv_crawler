@@ -1,0 +1,40 @@
+{% extends "base.html" %}{% block title %}TV Finder Home{% endblock %}
+
+{% block content %}
+<form method="POST">
+    <h1 align="center">Welcome to TV Finder</h1>
+    <p align="center">Here you can search for your favorite TV shows, and we will show you where to watch them for free!</p>
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" class="form-control" id="title" name="title" placeholder="Enter Title" value="{{ title }}"><br>
+    </div>
+
+    <div class="form-group">
+        <label for="cast">Casts</label>
+        <input type="text" class="form-control" id="cast" name="cast" placeholder="Enter Cast Names (separate with comma)" value="{{ cast }}"><br>
+    </div>
+
+    <div class="form-group">
+        <label for="general">Other info</label>
+        <input type="text" class="form-control" id="general" name="general" placeholder="Enter Other General Information" value="{{ general }}"><br><br>
+    </div>
+
+    <button type="submit" class="btn btn-primary" value="search" name="button">Search</button>
+    <button type="submit" class="btn btn-danger" value="clear" name="button">Clear</button>
+    <button class="btn btn-secondary" value="test" name="button">Test</button>
+</form>
+{% endblock %}
+<!-- results -->
+{% block result %}
+
+<table>
+    {% for x in range(10) %}
+    <tr>
+        {% for x in range(3) %}
+          <td>Hello</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+<p>{{ everything }}</p>
+{% endblock %}
