@@ -38,10 +38,17 @@
     </thead>
     {% for x in range(10) %}
     <tr>
-        <td>{{x}}</td>
-        <td>This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. This is a sample thumbnail. </td>
+        <td>
+            {{x+1}}
+        </td>
+
+        <td>
+            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/33/Patrick_Star.svg/800px-Patrick_Star.svg.png" class="rounded float-start img-thumbnail">
+        </td>
+
         <td>This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. 
         </td>
+
         <td>
             <a href="https://getbootstrap.com/docs/5.0/utilities/colors/">
                 <button class="btn btn-primary">Go</button>
