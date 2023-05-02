@@ -4,11 +4,11 @@ from bs4 import BeautifulSoup
 from urllib import parse
 import requests
 import json
-import logging
+from flask import jsonify
+import os
 
-logging.basicConfig(level=logging.DEBUG, filename='output.log', filemode='w')
-logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-visitlog = logging.getLogger('visited')
+file_path = os.path.join(os.path.dirname(__file__), 'roots.txt')
+
 
 class Site:
     def __init__(self:str, link:str, key_path:str, page:int, info:str):
@@ -115,7 +115,6 @@ def crawl_n_scrape(site:Site, get_content:int):
         for link in links:
             if link in visited:
                 continue
-            visitlog.debug(link)
             data.append(get_content(link))
             visited.append(link)
     res[site.link] = data
@@ -147,16 +146,16 @@ def get_sites(filename)->list[Site]:
 
     return sites
 
+def run():
+    sites = get_sites(file_path)
 
-if __name__ == '__main__':
-    sites = get_sites("roots.txt")
-
-    data_json = open('data.json', 'w')
+    # data_json = open('data.json', 'w')
     data = []
     get_functions=[read_bmovies, read_dopebox, read_moviecrumbs]
     iterator = 0
     for site in sites:
         data.append(crawl_n_scrape(site, get_functions[iterator]))
         iterator+=1
-    print(json.dump(data, data_json))
-    data_json.close()
+    # print(json.dump(data, data_json))
+    # data_json.close()
+    return data
