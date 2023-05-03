@@ -1,11 +1,11 @@
 .I 1
 .C 
- United States
+ Alex
 .O 
  stars
 
 .I 2
-.T 
+.O 
  Sister
 
 .I 3
@@ -13,16 +13,16 @@
  Chef
 
 .I 4
-.O 
+.T 
  doctor
 
 .I 5
-.T 
+.O 
  Doctor
 
 .I 6
 .O 
- run
+ family
 
 .I 7
 .T 
@@ -30,14 +30,14 @@
 
 .I 8
 .T 
- Catching Lightning
+ Mysteries
 .C
- United
+ Nick
 
 .I 9
 .O 
  rich
 
 .I 10
-.T 
+.C 
  rich
