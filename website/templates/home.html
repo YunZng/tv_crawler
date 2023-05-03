@@ -1,0 +1,61 @@
+{% extends "base.html" %}{% block title %}TV Finder Home{% endblock %}
+
+{% block content %}
+<form method="POST">
+    <h1 align="center">Welcome to TV Finder</h1>
+    <p align="center">Here you can search for your favorite TV shows, and we will show you where to watch them for free!</p>
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" class="form-control" id="title" name="title" placeholder="Enter Title" value="{{ title }}"><br>
+    </div>
+
+    <div class="form-group">
+        <label for="cast">Casts</label>
+        <input type="text" class="form-control" id="cast" name="cast" placeholder="Enter Cast Names (separate with comma)" value="{{ cast }}"><br>
+    </div>
+
+    <div class="form-group">
+        <label for="general">Other info</label>
+        <input type="text" class="form-control" id="general" name="general" placeholder="Enter Other General Information" value="{{ general }}"><br><br>
+    </div>
+
+    <button type="submit" class="btn btn-primary" value="search" name="button">Search</button>
+    <button type="submit" class="btn btn-danger" value="clear" name="button">Clear</button>
+    <button class="btn btn-secondary" value="test" name="button">Test</button>
+</form>
+{% endblock %}
+<!-- results -->
+{% block result %}
+
+<table class="table table-dark table-striped">
+    <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Thubmnail</th>
+          <th scope="col">Info</th>
+          <th scope="col"></th>
+        </tr>
+    </thead>
+    {% for x in range(10) %}
+    <tr>
+        <td>
+            {{x+1}}
+        </td>
+
+        <td>
+            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/33/Patrick_Star.svg/800px-Patrick_Star.svg.png" class="rounded float-start img-thumbnail">
+        </td>
+
+        <td>This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. 
+        </td>
+
+        <td>
+            <a href="https://getbootstrap.com/docs/5.0/utilities/colors/">
+                <button class="btn btn-primary">Go</button>
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<p>{{ everything }}</p>
+{% endblock %}
