@@ -6,34 +6,35 @@ import numpy as np
 from numpy.linalg import norm
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import word_tokenize
-import json
-import os
 
-common_words = os.path.join(os.path.dirname(__file__), 'common_words')
 
 ### File IO and processing
 
-class Document:
-    def __init__(self, id, data, title, actor, other):
-        self.doc_id = id
-        self.data = data
-        self.title = title
-        self.actor = actor
-        self.other = other
+class Document(NamedTuple):
+    doc_id: int
+    title: List[str]
+    actor: List[str]
+    other: List[str]
+    link: List[str]
 
     def sections(self):
-        return [self.title, self.actor, self.other]
+        return [self.title, self.actor, self.other, self.link]
 
     def __repr__(self):
-        return (f"  ID: {self.doc_id}\n" + str(self.data)+'\n\n')
+        return (f"doc_id: {self.doc_id}\n" +
+            f"  title: {self.title}\n" +
+            f"  actor: {self.actor}\n" +
+            f"  other: {self.other}\n" +
+            f"  link: {self.link}")
 
 
-def read_stopwords():
-    with open(common_words) as f:
+def read_stopwords(file):
+    with open(file) as f:
         return set([x.strip() for x in f.readlines()])
 
-def get_stemmer():
-    return SnowballStemmer('english')
+stopwords = read_stopwords('common_words')
+
+stemmer = SnowballStemmer('english')
 
 def read_rels(file):
     rels = {}
@@ -46,19 +47,6 @@ def read_rels(file):
                 rels[qid] = []
             rels[qid].append(rel)
     return rels
-
-def read_json(file):
-    all_docs = []
-    doc_id = 1
-    with open(file, "r") as f:
-        json_data = json.load(f)
-    for site in json_data:
-        for tv_show_lst in site.values():
-            for tv_show in tv_show_lst:
-                other = tv_show['Description'] + tv_show['Genre'] + tv_show['Director'] + tv_show['Country'] + tv_show['Episode Duration'] + tv_show['Quality'] + tv_show['Release'] + tv_show['Rating']
-                all_docs.append(Document(doc_id, tv_show, tv_show['Title'].lower().split(), tv_show['Actor'].lower().split(), other.lower().split()))
-                doc_id+=1
-    return all_docs
 
 def read_docs(file):
     docs = [defaultdict(list)]  # empty 0 index
@@ -79,19 +67,19 @@ def read_docs(file):
     return [Document(i + 1, d['T'], d['C'], d['O'], d['L'])
         for i, d in enumerate(docs[1:])]
 
-def stem_doc(doc: Document, stemmer):
-    return Document(doc.doc_id, doc.data, *[[stemmer.stem(word) for word in sec]
+def stem_doc(doc: Document):
+    return Document(doc.doc_id, *[[stemmer.stem(word) for word in sec]
         for sec in doc.sections()])
 
-def stem_docs(docs: List[Document], stemmer):
-    return [stem_doc(doc, stemmer) for doc in docs]
+def stem_docs(docs: List[Document]):
+    return [stem_doc(doc) for doc in docs]
 
-def remove_stopwords_doc(doc: Document, stopwords):
-    return Document(doc.doc_id, doc.data, *[[word for word in sec if word not in stopwords]
+def remove_stopwords_doc(doc: Document):
+    return Document(doc.doc_id, *[[word for word in sec if word not in stopwords]
         for sec in doc.sections()])
 
-def remove_stopwords(docs: List[Document], stopwords):
-    return [remove_stopwords_doc(doc, stopwords) for doc in docs]
+def remove_stopwords(docs: List[Document]):
+    return [remove_stopwords_doc(doc) for doc in docs]
 
 
 ### Term-Document Matrix
@@ -100,6 +88,7 @@ class TermWeights(NamedTuple):
     title: float
     actor: float
     other: float
+    link: float
 
 def compute_doc_freqs(docs: List[Document]):
     freq = Counter()
@@ -112,7 +101,7 @@ def compute_doc_freqs(docs: List[Document]):
             freq[word] += 1
     return freq
 
-def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights: TermWeights):
+def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights: list):
     vec = defaultdict(float)
     for word in doc.title:
         vec[word] += weights.title
@@ -120,6 +109,8 @@ def compute_tf(doc: Document, doc_freqs: Dict[str, int], weights: TermWeights):
         vec[word] += weights.actor
     for word in doc.other:
         vec[word] += weights.other
+    for word in doc.link:
+        vec[word] += weights.link
     return dict(vec)  # convert back to a regular dict
 
 def compute_tfidf(doc, doc_freqs, weights): # add one additional parameter N
@@ -210,22 +201,57 @@ def norm_precision(results, relevant):
 
 ### Search
 
-def experiment(docs, processed_queries, doc_freqs, doc_vectors):
-    query_vec = compute_tfidf(processed_queries[0], doc_freqs, TermWeights(title=1, actor=1, other=1))
-    ranking = search(doc_vectors, query_vec)
-    results = []
-    for i in range(10):
-        results.append(docs[ranking[i]-1])
-    return results
+def experiment():
+    docs = read_docs('processRaw.raw')
+    queries = read_docs('query.raw')
+    rels = read_rels('query.rels')
+    stopwords = read_stopwords('common_words')
+
+    print('Links', 'p_0.25', 'p_0.5', 'p_0.75', 'p_1.0', 'p_mean1', 'p_mean2', 'r_norm', 'p_norm', sep='\t')
+
+    processed_docs, processed_queries = process_docs_and_queries(docs, queries, True, True, stopwords)
+    doc_freqs = compute_doc_freqs(processed_docs)
+    doc_vectors = [compute_tfidf(doc, doc_freqs, TermWeights(title=4, actor=1, other=1, link=0)) for doc in processed_docs]
+
+    metrics = []
+
+    for query in processed_queries:
+        query_vec = compute_tfidf(query, doc_freqs, TermWeights(title=4, actor=1, other=1, link=0))
+        results = search(doc_vectors, query_vec)
+        rel = rels[query.doc_id]
+
+        metrics.append([
+            precision_at(0.25, results, rel),
+            precision_at(0.5, results, rel),
+            precision_at(0.75, results, rel),
+            precision_at(1.0, results, rel),
+            mean_precision1(results, rel),
+            mean_precision2(results, rel),
+            norm_recall(results, rel),
+            norm_precision(results, rel)
+        ])
+
+        averages = [f'{np.mean([metric[i] for metric in metrics]):.4f}'
+            for i in range(len(metrics[0]))]
+    
+        for i in range(10):
+            for doc in docs:
+                if doc.doc_id == results[i]:
+                    docLink = ''.join(doc.link)
+                    print(''.join(doc.link), *averages, sep='\t')
 
 
-def process_docs(docs, stem, removestop, stopwords, stemmer):
+def process_docs_and_queries(docs, queries, stem, removestop, stopwords):
     processed_docs = docs
+    processed_queries = queries
     if removestop:
-        processed_docs = remove_stopwords(processed_docs, stopwords)
+        processed_docs = remove_stopwords(processed_docs)
+        processed_queries = remove_stopwords(processed_queries)
     if stem:
-        processed_docs = stem_docs(processed_docs, stemmer)
-    return processed_docs
+        processed_docs = stem_docs(processed_docs)
+        processed_queries = stem_docs(processed_queries)
+    return processed_docs, processed_queries
+
 
 def search(doc_vectors, query_vec):
     results_with_score = [(doc_id + 1, cosine_sim(query_vec, doc_vec))
@@ -233,3 +259,7 @@ def search(doc_vectors, query_vec):
     results_with_score = sorted(results_with_score, key=lambda x: -x[1])
     results = [x[0] for x in results_with_score]
     return results
+
+
+if __name__ == '__main__':
+    experiment()
