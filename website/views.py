@@ -24,6 +24,7 @@ def home():
     general=''
     results=[]
     show_result=False
+    alert_message=''
     global docs, processed_docs, doc_freqs, doc_vectors
     if request.method == 'POST':
         data = request.form
@@ -32,10 +33,13 @@ def home():
             title = data.get('title')
             actor = data.get('actor')
             general = data.get('general')
-            show_result=True
-            query = Document(-1, None, title.lower().split(), actor.lower().split(), general.lower().split())
-            processed_query = process_docs([query], True, True, stopwords, stemmer)
-            results = experiment(docs, processed_query, doc_freqs, doc_vectors)
+            if title + actor + general == '':
+                alert_message = 'Come on, at least enter something!'
+            else:
+                show_result=True
+                query = Document(-1, None, title.lower().split(), actor.lower().split(), general.lower().split())
+                processed_query = process_docs([query], True, True, stopwords, stemmer)
+                results = experiment(docs, processed_query, doc_freqs, doc_vectors)
 
         elif button == 'refresh':
             title = data.get('title')
@@ -49,6 +53,6 @@ def home():
             doc_vectors = [compute_tfidf(doc, doc_freqs, TermWeights(title=4, actor=2, other=1)) for doc in processed_docs]
 
     # u can also pass variables in this function
-    return render_template('home.html', title=title, actor=actor, general=general, results=results, show_result=show_result)
+    return render_template('home.html', title=title, actor=actor, general=general, results=results, show_result=show_result, alert_message=alert_message)
 
 # This file is a blue print for our views, we need to register them in __init__.py
