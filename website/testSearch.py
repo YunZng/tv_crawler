@@ -211,12 +211,12 @@ def experiment():
 
     processed_docs, processed_queries = process_docs_and_queries(docs, queries, True, True, stopwords)
     doc_freqs = compute_doc_freqs(processed_docs)
-    doc_vectors = [compute_tfidf(doc, doc_freqs, TermWeights(title=4, actor=1, other=1, link=0)) for doc in processed_docs]
+    doc_vectors = [compute_tfidf(doc, doc_freqs, TermWeights(title=4, actor=2, other=1, link=0)) for doc in processed_docs]
 
     metrics = []
 
     for query in processed_queries:
-        query_vec = compute_tfidf(query, doc_freqs, TermWeights(title=4, actor=1, other=1, link=0))
+        query_vec = compute_tfidf(query, doc_freqs, TermWeights(title=4, actor=2, other=1, link=0))
         results = search(doc_vectors, query_vec)
         rel = rels[query.doc_id]
 
