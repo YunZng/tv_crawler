@@ -55,12 +55,12 @@ def read_bmovies(url:str):
     data[actor] = details[1][1]
     data[director] = details[2][1]
     data[country] = details[3][1]
-    data[duration] = details[5][1]
-    data[quality] = details[6][1]
-    data[release] = details[7][1]
-    data[rating] = details[8][1]
+    data[duration] = details[4][1]
+    data[quality] = details[5][1]
+    data[release] = details[6][1]
+    data[rating] = details[7][1]
     data[link] = url
-    data[image] = 'https:' + image_div['style'].split('(', 1)[1].split(')')[0]
+    data[image] = image_div['style'].split('(', 1)[1].split(')')[0]
     return data
 
 # get specific site's content
@@ -110,7 +110,7 @@ def crawl_n_scrape(site:Site, get_content:int):
     res={}
     data = []
     visited = []
-    for i in range(1):
+    for i in range(1): ## modify to range(1) to only crawl the first page or range(site.page) for all
         links = get_links(site.link+str(i+1), site.key_path)
         for link in links:
             if link in visited:
@@ -148,14 +148,15 @@ def get_sites(filename)->list[Site]:
 
 def run():
     sites = get_sites(file_path)
+    data_json_path = os.path.join(os.path.dirname(__file__), 'data.json')
 
-    # data_json = open('data.json', 'w')
+    data_json = open(data_json_path, 'w')
     data = []
     get_functions=[read_bmovies, read_dopebox, read_moviecrumbs]
     iterator = 0
     for site in sites:
         data.append(crawl_n_scrape(site, get_functions[iterator]))
         iterator+=1
-    # print(json.dump(data, data_json))
-    # data_json.close()
-    return data
+    print(json.dump(data, data_json))
+    data_json.close()
+    # return data

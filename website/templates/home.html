@@ -10,8 +10,8 @@
     </div>
 
     <div class="form-group">
-        <label for="cast">Casts</label>
-        <input type="text" class="form-control" id="cast" name="cast" placeholder="Enter Cast Names (separate with comma)" value="{{ cast }}"><br>
+        <label for="actor">Actors</label>
+        <input type="text" class="form-control" id="actor" name="actor" placeholder="Enter Actor Names (separate with comma)" value="{{ actor }}"><br>
     </div>
 
     <div class="form-group">
@@ -21,41 +21,56 @@
 
     <button type="submit" class="btn btn-primary" value="search" name="button">Search</button>
     <button type="submit" class="btn btn-danger" value="clear" name="button">Clear</button>
-    <button class="btn btn-secondary" value="test" name="button">Test</button>
+    <button class="btn btn-secondary" value="refresh" name="button">Refresh Database</button>
 </form>
 {% endblock %}
 <!-- results -->
 {% block result %}
-
+<div class="container">
+{% if alert_message %}
+    <div class="alert alert-danger">{{ alert_message }}</div>
+{% endif %}
+{% if show_result %}
 <table class="table table-dark table-striped">
     <thead>
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">Thubmnail</th>
-          <th scope="col">Info</th>
-          <th scope="col"></th>
+        <tr class="row">
+          <th scope="col" class="col-1">#</th>
+          <th scope="col" class="col-3">Thubmnail</th>
+          <th scope="col" class="col-7">Info</th>
+          <th scope="col" class="col-1"></th>
         </tr>
     </thead>
     {% for x in range(10) %}
-    <tr>
-        <td>
+    <tr scope="row" class="row">
+        <td class="col-md-1">
             {{x+1}}
         </td>
 
-        <td>
-            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/33/Patrick_Star.svg/800px-Patrick_Star.svg.png" class="rounded float-start img-thumbnail">
+        <td class="col-md-3">
+            <img src="{{results[x].data['Image']}}" class="rounded" style="width:255px; height:375px;">
         </td>
 
-        <td>This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. This is a sample description. 
+        <td class="col-md-7" style="overflow-wrap: word-break;">
+            <p><b>Title:</b> {{results[x].data['Title']}}</p>
+            <p><b>Description:</b> {{results[x].data['Description']}}</p>
+            <p><b>Genre:</b> {{results[x].data['Genre']}}</p>
+            <p><b>Actor:</b> {{results[x].data['Actor']}}</p>
+            <p><b>Director:</b> {{results[x].data['Director']}}</p>
+            <p><b>Country:</b> {{results[x].data['Country']}}</p>
+            <p><b>Episode Duration:</b> {{results[x].data['Episode Duration']}}</p>
+            <p><b>Quality:</b> {{results[x].data['Quality']}}</p>
+            <p><b>Release:</b> {{results[x].data['Release']}}</p>
+            <p><b>Rating:</b> {{results[x].data['Rating']}}</p>
         </td>
 
-        <td>
-            <a href="https://getbootstrap.com/docs/5.0/utilities/colors/">
+        <td class="col-md-1">
+            <a href="{{results[x].data['Link']}}">
                 <button class="btn btn-primary">Go</button>
             </a>
         </td>
     </tr>
     {% endfor %}
 </table>
-<p>{{ everything }}</p>
+{% endif %}
+</div>
 {% endblock %}
