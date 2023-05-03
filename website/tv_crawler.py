@@ -4,11 +4,11 @@ from bs4 import BeautifulSoup
 from urllib import parse
 import requests
 import json
-import logging
+from flask import jsonify
+import os
 
-logging.basicConfig(level=logging.DEBUG, filename='output.log', filemode='w')
-logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-visitlog = logging.getLogger('visited')
+file_path = os.path.join(os.path.dirname(__file__), 'roots.txt')
+
 
 class Site:
     def __init__(self:str, link:str, key_path:str, page:int, info:str):
@@ -55,12 +55,12 @@ def read_bmovies(url:str):
     data[actor] = details[1][1]
     data[director] = details[2][1]
     data[country] = details[3][1]
-    data[duration] = details[5][1]
-    data[quality] = details[6][1]
-    data[release] = details[7][1]
-    data[rating] = details[8][1]
+    data[duration] = details[4][1]
+    data[quality] = details[5][1]
+    data[release] = details[6][1]
+    data[rating] = details[7][1]
     data[link] = url
-    data[image] = 'https:' + image_div['style'].split('(', 1)[1].split(')')[0]
+    data[image] = image_div['style'].split('(', 1)[1].split(')')[0]
     return data
 
 # get specific site's content
@@ -115,7 +115,6 @@ def crawl_n_scrape(site:Site, get_content:int):
         for link in links:
             if link in visited:
                 continue
-            visitlog.debug(link)
             data.append(get_content(link))
             visited.append(link)
     res[site.link] = data
@@ -147,11 +146,11 @@ def get_sites(filename)->list[Site]:
 
     return sites
 
+def run():
+    sites = get_sites(file_path)
+    data_json_path = os.path.join(os.path.dirname(__file__), 'data.json')
 
-if __name__ == '__main__':
-    sites = get_sites("roots.txt")
-
-    data_json = open('data.json', 'w')
+    data_json = open(data_json_path, 'w')
     data = []
     get_functions=[read_bmovies, read_dopebox, read_moviecrumbs]
     iterator = 0
@@ -160,3 +159,4 @@ if __name__ == '__main__':
         iterator+=1
     print(json.dump(data, data_json))
     data_json.close()
+    # return data
