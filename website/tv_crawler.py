@@ -1,10 +1,9 @@
-from io import TextIOWrapper
 import re
 from bs4 import BeautifulSoup
 from urllib import parse
 import requests
 import json
-from flask import jsonify
+
 import os
 
 file_path = os.path.join(os.path.dirname(__file__), 'roots.txt')
@@ -90,6 +89,8 @@ def read_moviecrumbs(url:str):
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
     parent_div = soup.find('div', {'class':'dp-i-content'})
+    if parent_div is None:
+        return None
     div = parent_div.find('div', {'class':'dp-i-c-right'})
     details = [item.get_text(strip=True).split(':') for item in div.find_all('div', {'class':'row-line'})]
     data[title] = div.find('h2', {'class':'heading-name'}).get_text(strip=True)
@@ -110,13 +111,17 @@ def crawl_n_scrape(site:Site, get_content:int):
     res={}
     data = []
     visited = []
-    for i in range(1): ## modify to range(1) to only crawl the first page or range(site.page) for all
+    for i in range(100): ## modify to range(1) to only crawl the first page or range(site.page) for all
         links = get_links(site.link+str(i+1), site.key_path)
         for link in links:
             if link in visited:
                 continue
-            data.append(get_content(link))
+            print("scraping "+link)
+            result = get_content(link)
+            if result != None:
+                data.append(get_content(link))
             visited.append(link)
+
     res[site.link] = data
     return res
 

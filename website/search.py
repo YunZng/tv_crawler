@@ -50,6 +50,12 @@ def read_rels(file):
 def read_json(file):
     all_docs = []
     doc_id = 1
+    first_line = ''
+    with open(file, "r") as f:
+        first_line = f.readline()
+    if len(first_line) == 0:
+        with open(file, "w") as g:
+            g.write("{}")
     with open(file, "r") as f:
         json_data = json.load(f)
     for site in json_data:
@@ -214,7 +220,7 @@ def experiment(docs, processed_queries, doc_freqs, doc_vectors):
     query_vec = compute_tfidf(processed_queries[0], doc_freqs, TermWeights(title=1, actor=1, other=1))
     ranking = search(doc_vectors, query_vec)
     results = []
-    for i in range(10):
+    for i in range(50):
         results.append(docs[ranking[i]-1])
     return results
 
